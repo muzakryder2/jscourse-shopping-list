@@ -5,7 +5,14 @@ const itemList = document.querySelector("#item-list");
 const clearButton = document.querySelector("#clear");
 const itemFilter = document.querySelector("#filter");
 
-function addItem(e) {
+function displayItems() {
+  const itemsFromStorage = getItemsFromStorage();
+
+  itemsFromStorage.forEach((item) => addItemToDOM(item));
+  checkUI();
+}
+
+function onAddItemSubmit(e) {
   e.preventDefault();
 
   const newItem = itemInput.value.trim();
@@ -17,16 +24,21 @@ function addItem(e) {
     return;
   }
 
+  addItemToDOM(newItem);
+  addItemToStorage(newItem);
+  checkUI();
+  itemInput.value = "";
+}
+
+function addItemToDOM(item) {
   // Create list item
   const li = document.createElement("li");
-  li.appendChild(document.createTextNode(newItem));
+  li.appendChild(document.createTextNode(item));
   const button = createButton("remove-item btn-link text-red");
   li.appendChild(button);
 
   // Add li to DOM
   itemList.appendChild(li);
-  checkUI();
-  itemInput.value = "";
 }
 
 function createButton(classes) {
@@ -41,6 +53,26 @@ function createIcon(classes) {
   const icon = document.createElement("i");
   icon.className = classes;
   return icon;
+}
+
+function addItemToStorage(item) {
+  const itemsFromStorage = getItemsFromStorage();
+
+  itemsFromStorage.push(item);
+
+  // Convert to JSON string and set to local storage
+  localStorage.setItem("items", JSON.stringify(itemsFromStorage));
+}
+
+function getItemsFromStorage() {
+  let itemsFromStorage;
+  if (localStorage.getItem("items") === null) {
+    itemsFromStorage = [];
+  } else {
+    itemsFromStorage = JSON.parse(localStorage.getItem("items"));
+  }
+
+  return itemsFromStorage;
 }
 
 function removeItem(e) {
@@ -86,10 +118,15 @@ function checkUI() {
   }
 }
 
-// Event listeners
-itemForm.addEventListener("submit", addItem);
-itemList.addEventListener("click", removeItem);
-clearButton.addEventListener("click", clearItems);
-itemFilter.addEventListener("input", filterItems);
+// initialize app
+function init() {
+  // Event listeners
+  itemForm.addEventListener("submit", onAddItemSubmit);
+  itemList.addEventListener("click", removeItem);
+  clearButton.addEventListener("click", clearItems);
+  itemFilter.addEventListener("input", filterItems);
+  document.addEventListener("DOMContentLoaded", displayItems);
+  checkUI();
+}
 
-checkUI();
+init();
